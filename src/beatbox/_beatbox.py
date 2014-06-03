@@ -1,6 +1,6 @@
 """beatbox: Makes the salesforce.com SOAP API easily accessible."""
 
-__version__ = '20.0'
+__version__ = '20.1'
 __author__ = "Simon Fell et al"
 __credits__ = "Mad shouts to the sforce possie"
 __copyright__ = "(C) 2006 Simon Fell. GNU GPL 2."
@@ -55,13 +55,13 @@ class Client:
         if callable(getattr(self.__conn, 'close', None)):
             self.__conn.close()
 
-    # login, the serverUrl and sessionId are automatically handled, returns the loginResult structure       
+    # login, the serverUrl and sessionId are automatically handled, returns the loginResult structure
     def login(self, username, password):
         lr = LoginRequest(self.serverUrl, username, password).post()
         self.useSession(str(lr[_tPartnerNS.sessionId]), str(lr[_tPartnerNS.serverUrl]))
         return lr
 
-    # initialize from an existing sessionId & serverUrl, useful if we're being launched via a custom link   
+    # initialize from an existing sessionId & serverUrl, useful if we're being launched via a custom link
     def useSession(self, sessionId, serverUrl):
         self.sessionId = sessionId
         self.__serverUrl = serverUrl
@@ -71,22 +71,22 @@ class Client:
     # set the batchSize property on the Client instance to change the batchsize for query/queryMore
     def query(self, soql):
         return QueryRequest(self.__serverUrl, self.sessionId, self.batchSize, soql).post(self.__conn)
-    
+
     def queryMore(self, queryLocator):
         return QueryMoreRequest(self.__serverUrl, self.sessionId, self.batchSize, queryLocator).post(self.__conn)
-        
+
     def search(self, sosl):
         return SearchRequest(self.__serverUrl, self.sessionId, self.batchSize, sosl).post(self.__conn)
-        
+
     def getUpdated(self, sObjectType, start, end):
         return GetUpdatedRequest(self.__serverUrl, self.sessionId, sObjectType, start, end).post(self.__conn)
-        
+
     def getDeleted(self, sObjectType, start, end):
         return GetDeletedRequest(self.__serverUrl, self.sessionId, sObjectType, start, end).post(self.__conn)
-                
+
     def retrieve(self, fields, sObjectType, ids):
         return RetrieveRequest(self.__serverUrl, self.sessionId, fields, sObjectType, ids).post(self.__conn)
-        
+
     # sObjects can be 1 or a list, returns a single save result or a list
     def create(self, sObjects):
         return CreateRequest(self.__serverUrl, self.sessionId, sObjects).post(self.__conn)
@@ -94,11 +94,11 @@ class Client:
     # sObjects can be 1 or a list, returns a single save result or a list
     def update(self, sObjects):
         return UpdateRequest(self.__serverUrl, self.sessionId, sObjects).post(self.__conn)
-        
+
     # sObjects can be 1 or a list, returns a single upsert result or a list
     def upsert(self, externalIdName, sObjects):
-        return UpsertRequest(self.__serverUrl, self.sessionId, externalIdName, sObjects).post(self.__conn)  
-    
+        return UpsertRequest(self.__serverUrl, self.sessionId, externalIdName, sObjects).post(self.__conn)
+
     # ids can be 1 or a list, returns a single delete result or a list
     def delete(self, ids):
         return DeleteRequest(self.__serverUrl, self.sessionId, ids).post(self.__conn)
@@ -106,25 +106,25 @@ class Client:
     # sObjectTypes can be 1 or a list, returns a single describe result or a list of them
     def describeSObjects(self, sObjectTypes):
         return DescribeSObjectsRequest(self.__serverUrl, self.sessionId, sObjectTypes).post(self.__conn)
-        
+
     def describeGlobal(self):
         return AuthenticatedRequest(self.__serverUrl, self.sessionId, "describeGlobal").post(self.__conn)
 
     def describeLayout(self, sObjectType):
         return DescribeLayoutRequest(self.__serverUrl, self.sessionId, sObjectType).post(self.__conn)
-        
+
     def describeTabs(self):
         return AuthenticatedRequest(self.__serverUrl, self.sessionId, "describeTabs").post(self.__conn, True)
 
     def getServerTimestamp(self):
         return str(AuthenticatedRequest(self.__serverUrl, self.sessionId, "getServerTimestamp").post(self.__conn)[_tPartnerNS.timestamp])
-        
+
     def resetPassword(self, userId):
         return ResetPasswordRequest(self.__serverUrl, self.sessionId, userId).post(self.__conn)
-        
+
     def setPassword(self, userId, password):
         SetPasswordRequest(self.__serverUrl, self.sessionId, userId, password).post(self.__conn)
-        
+
     def getUserInfo(self):
         return AuthenticatedRequest(self.__serverUrl, self.sessionId, "getUserInfo").post(self.__conn)
 
@@ -134,27 +134,28 @@ class Client:
 class BeatBoxXmlGenerator(XMLGenerator):
     def __init__(self, destination, encoding):
         XMLGenerator.__init__(self, destination, encoding)
-    
-    def makeName(self, name):   
+        self._out = destination
+
+    def makeName(self, name):
         if name[0] is None:
             #if the name was not namespace-scoped, use the qualified part
             return name[1]
         # else try to restore the original prefix from the namespace
         return self._current_context[name[0]] + ":" + name[1]
-        
+
     def startElementNS(self, name, qname, attrs):
         self._out.write('<' + self.makeName(name))
-        
+
         for pair in self._undeclared_ns_maps:
             self._out.write(' xmlns:%s="%s"' % pair)
         self._undeclared_ns_maps = []
-        
+
         for (name, value) in attrs.items():
             self._out.write(' %s=%s' % (self.makeName(name), quoteattr(value)))
         self._out.write('>')
 
 # general purpose xml writer, does a bunch of useful stuff above & beyond XmlGenerator
-class XmlWriter:            
+class XmlWriter:
     def __init__(self, doGzip):
         self.__buf = StringIO("")
         if doGzip:
@@ -169,10 +170,10 @@ class XmlWriter:
 
     def startPrefixMapping(self, prefix, namespace):
         self.xg.startPrefixMapping(prefix, namespace)
-    
+
     def endPrefixMapping(self, prefix):
         self.xg.endPrefixMapping(prefix)
-        
+
     def startElement(self, namespace, name, attrs = _noAttrs):
         self.xg.startElementNS((namespace, name), name, attrs)
         self.__elems.append((namespace, name))
@@ -215,24 +216,24 @@ class SoapFaultError(Exception):
     def __init__(self, faultCode, faultString):
         self.faultCode = faultCode
         self.faultString = faultString
-            
+
     def __str__(self):
         return repr(self.faultCode) + " " + repr(self.faultString)
 
 class SessionTimeoutError(Exception):
     """SessionTimeouts are recoverable errors, merely needing the creation
-       of a new connection, we create a new exception type, so these can 
+       of a new connection, we create a new exception type, so these can
        be identified and handled seperately from SoapFaultErrors
     """
     def __init__(self, faultCode, faultString):
         self.faultCode = faultCode
         self.faultString = faultString
-    
+
     def __str__(self):
         return repr(self.faultCode) + " " + repr(self.faultString)
-    
 
-        
+
+
 # soap specific stuff ontop of XmlWriter
 class SoapWriter(XmlWriter):
     def __init__(self):
@@ -241,15 +242,15 @@ class SoapWriter(XmlWriter):
         self.startPrefixMapping("p", _partnerNs)
         self.startPrefixMapping("o", _sobjectNs)
         self.startElement(_envNs, "Envelope")
-        
+
     def endDocument(self):
         self.endElement()  # envelope
         self.endPrefixMapping("o")
         self.endPrefixMapping("p")
         self.endPrefixMapping("s")
-        return XmlWriter.endDocument(self)  
+        return XmlWriter.endDocument(self)
 
-# processing for a single soap request / response       
+# processing for a single soap request / response
 class SoapEnvelope:
     def __init__(self, serverUrl, operationName, clientId="BeatBox/" + __version__):
         self.serverUrl = serverUrl
@@ -280,9 +281,9 @@ class SoapEnvelope:
         s.endElement()  # body
         return s.endDocument()
 
-    # does all the grunt work, 
-    #   serializes the request, 
-    #   makes a http request, 
+    # does all the grunt work,
+    #   serializes the request,
+    #   makes a http request,
     #   passes the response to tramp
     #   checks for soap fault
     #   todo: check for mU='1' headers
@@ -317,7 +318,7 @@ class SoapEnvelope:
                 attempt += 1
         if not response:
             raise RuntimeError, 'No response from Salesforce'
-        
+
         if response.getheader('content-encoding','') == 'gzip':
             rawResponse = gzip.GzipFile(fileobj=StringIO(rawResponse)).read()
         if close:
@@ -339,7 +340,7 @@ class SoapEnvelope:
             return result[:]
         else:
             return result[0]
-    
+
 
 class LoginRequest(SoapEnvelope):
     def __init__(self, serverUrl, username, password):
@@ -375,25 +376,25 @@ class AuthenticatedRequest(SoapEnvelope):
                 if (fn != 'type'):
                     s.writeStringElement(_sobjectNs, fn, sObjects[fn])
             s.endElement()
-        
-                        
+
+
 class QueryOptionsRequest(AuthenticatedRequest):
     def __init__(self, serverUrl, sessionId, batchSize, operationName):
         AuthenticatedRequest.__init__(self, serverUrl, sessionId, operationName)
         self.batchSize = batchSize
-        
+
     def writeHeaders(self, s):
         AuthenticatedRequest.writeHeaders(self, s)
         s.startElement(_partnerNs, "QueryOptions")
         s.writeStringElement(_partnerNs, "batchSize", self.batchSize)
         s.endElement()
-        
-        
+
+
 class QueryRequest(QueryOptionsRequest):
     def __init__(self, serverUrl, sessionId, batchSize, soql):
         QueryOptionsRequest.__init__(self, serverUrl, sessionId, batchSize, "query")
         self.__query = soql
-                
+
     def writeBody(self, s):
         s.writeStringElement(_partnerNs, "queryString", self.__query)
 
@@ -402,7 +403,7 @@ class QueryMoreRequest(QueryOptionsRequest):
     def __init__(self, serverUrl, sessionId, batchSize, queryLocator):
         QueryOptionsRequest.__init__(self, serverUrl, sessionId, batchSize, "queryMore")
         self.__queryLocator = queryLocator
-        
+
     def writeBody(self, s):
         s.writeStringElement(_partnerNs, "queryLocator", self.__queryLocator)
 
@@ -411,7 +412,7 @@ class SearchRequest(QueryOptionsRequest):
     def __init__(self, serverUrl, sessionId, batchSize, sosl):
         QueryOptionsRequest.__init__(self, serverUrl, sessionId, batchSize, "search")
         self.__search = sosl
-        
+
     def writeBody(self, s):
         s.writeStringElement(_partnerNs, "searchString", self.__search)
 
@@ -422,24 +423,24 @@ class GetUpdatedRequest(AuthenticatedRequest):
         self.__sObjectType = sObjectType
         self.__start = start;
         self.__end = end;
-        
+
     def writeBody(self, s):
         s.writeStringElement(_partnerNs, "sObjectType", self.__sObjectType)
         s.writeStringElement(_partnerNs, "startDate", self.__start)
-        s.writeStringElement(_partnerNs, "endDate", self.__end)                     
-            
+        s.writeStringElement(_partnerNs, "endDate", self.__end)
+
 
 class GetDeletedRequest(GetUpdatedRequest):
     def __init__(self, serverUrl, sessionId, sObjectType, start, end):
         GetUpdatedRequest.__init__(self, serverUrl, sessionId, sObjectType, start, end, "getDeleted")
 
-    
+
 class UpsertRequest(AuthenticatedRequest):
     def __init__(self, serverUrl, sessionId, externalIdName, sObjects):
         AuthenticatedRequest.__init__(self, serverUrl, sessionId, "upsert")
         self.__externalIdName = externalIdName
         self.__sObjects = sObjects
-        
+
     def writeBody(self, s):
         s.writeStringElement(_partnerNs, "externalIDFieldName", self.__externalIdName)
         self.writeSObjects(s, self.__sObjects)
@@ -449,71 +450,71 @@ class UpdateRequest(AuthenticatedRequest):
     def __init__(self, serverUrl, sessionId, sObjects, operationName="update"):
         AuthenticatedRequest.__init__(self, serverUrl, sessionId, operationName)
         self.__sObjects = sObjects
-        
+
     def writeBody(self, s):
         self.writeSObjects(s, self.__sObjects)
-                
 
-class CreateRequest(UpdateRequest):     
+
+class CreateRequest(UpdateRequest):
     def __init__(self, serverUrl, sessionId, sObjects):
         UpdateRequest.__init__(self, serverUrl, sessionId, sObjects, "create")
-        
+
 
 class DeleteRequest(AuthenticatedRequest):
     def __init__(self, serverUrl, sessionId, ids):
         AuthenticatedRequest.__init__(self, serverUrl, sessionId, "delete")
         self.__ids = ids;
-        
+
     def writeBody(self, s):
         s.writeStringElement(_partnerNs, "id", self.__ids)
-                
-        
+
+
 class RetrieveRequest(AuthenticatedRequest):
     def __init__(self, serverUrl, sessionId, fields, sObjectType, ids):
         AuthenticatedRequest.__init__(self, serverUrl, sessionId, "retrieve")
         self.__fields = fields
         self.__sObjectType = sObjectType
         self.__ids = ids
-        
+
     def writeBody(self, s):
         s.writeStringElement(_partnerNs, "fieldList", self.__fields)
         s.writeStringElement(_partnerNs, "sObjectType", self.__sObjectType);
         s.writeStringElement(_partnerNs, "ids", self.__ids)
-            
-        
+
+
 class ResetPasswordRequest(AuthenticatedRequest):
     def __init__(self, serverUrl, sessionId, userId):
         AuthenticatedRequest.__init__(self, serverUrl, sessionId, "resetPassword")
         self.__userId = userId
-        
+
     def writeBody(self, s):
         s.writeStringElement(_partnerNs, "userId", self.__userId)
-        
+
 
 class SetPasswordRequest(AuthenticatedRequest):
     def __init__(self, serverUrl, sessionId, userId, password):
         AuthenticatedRequest.__init__(self, serverUrl, sessionId, "setPassword")
         self.__userId = userId
         self.__password = password
-        
+
     def writeBody(self, s):
         s.writeStringElement(_partnerNs, "userId", self.__userId)
-        s.writeStringElement(_partnerNs, "password", self.__password)   
-        
-                
+        s.writeStringElement(_partnerNs, "password", self.__password)
+
+
 class DescribeSObjectsRequest(AuthenticatedRequest):
     def __init__(self, serverUrl, sessionId, sObjectTypes):
         AuthenticatedRequest.__init__(self, serverUrl, sessionId, "describeSObjects")
         self.__sObjectTypes = sObjectTypes
-    
+
     def writeBody(self, s):
         s.writeStringElement(_partnerNs, "sObjectType", self.__sObjectTypes)
-            
-        
+
+
 class DescribeLayoutRequest(AuthenticatedRequest):
     def __init__(self, serverUrl, sessionId, sObjectType):
         AuthenticatedRequest.__init__(self, serverUrl, sessionId, "describeLayout")
         self.__sObjectType = sObjectType
-        
+
     def writeBody(self, s):
         s.writeStringElement(_partnerNs, "sObjectType", self.__sObjectType)
