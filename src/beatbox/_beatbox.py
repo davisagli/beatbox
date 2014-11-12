@@ -32,11 +32,12 @@ _tSObjectNS = xmltramp.Namespace(_sobjectNs)
 _tSoapNS = xmltramp.Namespace(_envNs)
 
 # global config
-gzipRequest=True    # are we going to gzip the request ?
-gzipResponse=True   # are we going to tell teh server to gzip the response ?
-forceHttp=False     # force all connections to be HTTP, for debugging
+gzipRequest = True    # are we going to gzip the request ?
+gzipResponse = True   # are we going to tell teh server to gzip the response ?
+forceHttp = False     # force all connections to be HTTP, for debugging
 
 logger = logging.getLogger('beatbox')
+
 
 def makeConnection(scheme, host):
     if forceHttp or scheme.upper() == 'HTTP':
@@ -55,13 +56,15 @@ class Client:
         if callable(getattr(self.__conn, 'close', None)):
             self.__conn.close()
 
-    # login, the serverUrl and sessionId are automatically handled, returns the loginResult structure
+    # login, the serverUrl and sessionId are automatically handled,
+    # returns the loginResult structure
     def login(self, username, password):
         lr = LoginRequest(self.serverUrl, username, password).post()
         self.useSession(str(lr[_tPartnerNS.sessionId]), str(lr[_tPartnerNS.serverUrl]))
         return lr
 
-    # initialize from an existing sessionId & serverUrl, useful if we're being launched via a custom link
+    # initialize from an existing sessionId & serverUrl, useful if we're being launched
+    # via a custom link
     def useSession(self, sessionId, serverUrl):
         self.sessionId = sessionId
         self.__serverUrl = serverUrl
@@ -128,7 +131,6 @@ class Client:
     def getUserInfo(self):
         return AuthenticatedRequest(self.__serverUrl, self.sessionId, "getUserInfo").post(self.__conn)
 
-    #def convertLead(self, convertLeads):
 
 # fixed version of XmlGenerator, handles unqualified attributes correctly
 class BeatBoxXmlGenerator(XMLGenerator):
@@ -138,7 +140,7 @@ class BeatBoxXmlGenerator(XMLGenerator):
 
     def makeName(self, name):
         if name[0] is None:
-            #if the name was not namespace-scoped, use the qualified part
+            # if the name was not namespace-scoped, use the qualified part
             return name[1]
         # else try to restore the original prefix from the namespace
         return self._current_context[name[0]] + ":" + name[1]
@@ -153,6 +155,7 @@ class BeatBoxXmlGenerator(XMLGenerator):
         for (name, value) in attrs.items():
             self._out.write(' %s=%s' % (self.makeName(name), quoteattr(value)))
         self._out.write('>')
+
 
 # general purpose xml writer, does a bunch of useful stuff above & beyond XmlGenerator
 class XmlWriter:
@@ -174,12 +177,12 @@ class XmlWriter:
     def endPrefixMapping(self, prefix):
         self.xg.endPrefixMapping(prefix)
 
-    def startElement(self, namespace, name, attrs = _noAttrs):
+    def startElement(self, namespace, name, attrs=_noAttrs):
         self.xg.startElementNS((namespace, name), name, attrs)
         self.__elems.append((namespace, name))
 
     # if value is a list, then it writes out repeating elements, one for each value
-    def writeStringElement(self, namespace, name, value, attrs = _noAttrs):
+    def writeStringElement(self, namespace, name, value, attrs=_noAttrs):
         if islst(value):
             for v in value:
                 self.writeStringElement(namespace, name, v, attrs)
@@ -189,7 +192,7 @@ class XmlWriter:
             self.endElement()
 
     def endElement(self):
-        e = self.__elems[-1];
+        e = self.__elems[-1]
         self.xg.endElementNS(e, e[1])
         del self.__elems[-1]
 
@@ -207,9 +210,10 @@ class XmlWriter:
 
     def endDocument(self):
         self.xg.endDocument()
-        if (self.__gzip != None):
-            self.__gzip.close();
+        if (self.__gzip is not None):
+            self.__gzip.close()
         return self.__buf.getvalue()
+
 
 # exception class for soap faults
 class SoapFaultError(Exception):
@@ -219,6 +223,7 @@ class SoapFaultError(Exception):
 
     def __str__(self):
         return repr(self.faultCode) + " " + repr(self.faultString)
+
 
 class SessionTimeoutError(Exception):
     """SessionTimeouts are recoverable errors, merely needing the creation
@@ -231,7 +236,6 @@ class SessionTimeoutError(Exception):
 
     def __str__(self):
         return repr(self.faultCode) + " " + repr(self.faultString)
-
 
 
 # soap specific stuff ontop of XmlWriter
@@ -249,6 +253,7 @@ class SoapWriter(XmlWriter):
         self.endPrefixMapping("p")
         self.endPrefixMapping("s")
         return XmlWriter.endDocument(self)
+
 
 # processing for a single soap request / response
 class SoapEnvelope:
@@ -290,9 +295,11 @@ class SoapEnvelope:
     #   returns the relevant result from the body child
     def post(self, conn=None, alwaysReturnList=False):
         logger.debug(self.__class__)
-        headers = { "User-Agent": "BeatBox/" + __version__,
-                    "SOAPAction": "\"\"",
-                    "Content-Type": "text/xml; charset=utf-8" }
+        headers = {
+            "User-Agent": "BeatBox/" + __version__,
+            "SOAPAction": "\"\"",
+            "Content-Type": "text/xml; charset=utf-8",
+        }
         if gzipResponse:
             headers['accept-encoding'] = 'gzip'
         if gzipRequest:
@@ -304,29 +311,29 @@ class SoapEnvelope:
         attempt = 1
         while not response and attempt <= max_attempts:
             try:
-                if conn == None:
+                if conn is None:
                     conn = makeConnection(scheme, host)
                     close = True
                 conn.request("POST", path, self.makeEnvelope(), headers)
                 response = conn.getresponse()
                 rawResponse = response.read()
             except (httplib.HTTPException, socket.error):
-                if conn != None:
+                if conn is not None:
                     conn.close()
                     conn = None
                     response = None
                 attempt += 1
         if not response:
-            raise RuntimeError, 'No response from Salesforce'
+            raise RuntimeError('No response from Salesforce')
 
-        if response.getheader('content-encoding','') == 'gzip':
+        if response.getheader('content-encoding', '') == 'gzip':
             rawResponse = gzip.GzipFile(fileobj=StringIO(rawResponse)).read()
         if close:
             conn.close()
         tramp = xmltramp.parse(rawResponse)
         try:
             faultString = str(tramp[_tSoapNS.Body][_tSoapNS.Fault].faultstring)
-            faultCode   = str(tramp[_tSoapNS.Body][_tSoapNS.Fault].faultcode).split(':')[-1]
+            faultCode = str(tramp[_tSoapNS.Body][_tSoapNS.Fault].faultcode).split(':')[-1]
             if faultCode == 'INVALID_SESSION_ID':
                 raise SessionTimeoutError(faultCode, faultString)
             else:
@@ -421,8 +428,8 @@ class GetUpdatedRequest(AuthenticatedRequest):
     def __init__(self, serverUrl, sessionId, sObjectType, start, end, operationName="getUpdated"):
         AuthenticatedRequest.__init__(self, serverUrl, sessionId, operationName)
         self.__sObjectType = sObjectType
-        self.__start = start;
-        self.__end = end;
+        self.__start = start
+        self.__end = end
 
     def writeBody(self, s):
         s.writeStringElement(_partnerNs, "sObjectType", self.__sObjectType)
@@ -463,7 +470,7 @@ class CreateRequest(UpdateRequest):
 class DeleteRequest(AuthenticatedRequest):
     def __init__(self, serverUrl, sessionId, ids):
         AuthenticatedRequest.__init__(self, serverUrl, sessionId, "delete")
-        self.__ids = ids;
+        self.__ids = ids
 
     def writeBody(self, s):
         s.writeStringElement(_partnerNs, "id", self.__ids)
@@ -478,7 +485,7 @@ class RetrieveRequest(AuthenticatedRequest):
 
     def writeBody(self, s):
         s.writeStringElement(_partnerNs, "fieldList", self.__fields)
-        s.writeStringElement(_partnerNs, "sObjectType", self.__sObjectType);
+        s.writeStringElement(_partnerNs, "sObjectType", self.__sObjectType)
         s.writeStringElement(_partnerNs, "ids", self.__ids)
 
 

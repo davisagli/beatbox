@@ -1,15 +1,14 @@
-from types import DictType, StringTypes, IntType, ListType, TupleType
-import gc
-import unittest
-import datetime
 from time import time
-
-import sfconfig
+from types import ListType, TupleType
 import beatbox
-
-from beatbox import SoapFaultError
+import datetime
+import gc
+import sfconfig
+import unittest
 
 BENCHMARK_REPS = 1
+
+
 def benchmark(func):
     def benchmarked_func(self):
         # temporarily disable garbage collection
@@ -23,10 +22,12 @@ def benchmark(func):
         print "\n%s: %s\n" % (func.__name__, elapsed)
     return benchmarked_func
 
+
 class TestUtils(unittest.TestCase):
 
     def setUp(self):
-        self.svc = svc = beatbox.PythonClient(serverUrl='https://www.salesforce.com/services/Soap/u/15.0')
+        from beatbox._beatbox import DEFAULT_SERVER_URL
+        self.svc = svc = beatbox.PythonClient(serverUrl=DEFAULT_SERVER_URL)
         svc.login(sfconfig.USERNAME, sfconfig.PASSWORD)
         self._todelete = list()
 
@@ -55,12 +56,13 @@ class TestUtils(unittest.TestCase):
     @benchmark
     def testCreate(self):
         svc = self.svc
-        data = dict(type='Contact',
+        data = dict(
+            type='Contact',
             LastName='Doe',
             FirstName='John',
             Phone='123-456-7890',
             Email='john@doe.com',
-            Birthdate = datetime.date(1970, 1, 4)
+            Birthdate=datetime.date(1970, 1, 4)
             )
         res = svc.create([data])
         self.failUnless(type(res) in (ListType, TupleType))
@@ -68,44 +70,49 @@ class TestUtils(unittest.TestCase):
         self.failUnless(res[0]['success'])
         id = res[0]['id']
         self._todelete.append(id)
-        contacts = svc.retrieve('LastName, FirstName, Phone, Email, Birthdate',
-            'Contact', [id])
+        contacts = svc.retrieve(
+            'LastName, FirstName, Phone, Email, Birthdate', 'Contact', [id])
         self.assertEqual(len(contacts), 1)
         contact = contacts[0]
         for k in ['LastName', 'FirstName', 'Phone', 'Email', 'Birthdate']:
             self.assertEqual(
                 data[k], contact[k])
-                
+
     @benchmark
     def testQuery(self):
         svc = self.svc
-        data = dict(type='Contact',
+        data = dict(
+            type='Contact',
             LastName='Doe',
             FirstName='John',
             Phone='123-456-7890',
             Email='john@doe.com',
-            Birthdate = datetime.date(1970, 1, 4)
+            Birthdate=datetime.date(1970, 1, 4)
             )
         res = svc.create([data])
         self._todelete.append(res[0]['id'])
-        data2 = dict(type='Contact',
+        data2 = dict(
+            type='Contact',
             LastName='Doe',
             FirstName='Jane',
             Phone='123-456-7890',
             Email='jane@doe.com',
-            Birthdate = datetime.date(1972, 10, 15)
+            Birthdate=datetime.date(1972, 10, 15)
             )
         res = svc.create([data2])
         janeid = res[0]['id']
         self._todelete.append(janeid)
-        res = svc.query('LastName, FirstName, Phone, Email, Birthdate',
-                'Contact', "LastName = 'Doe'")
+        res = svc.query(
+            'LastName, FirstName, Phone, Email, Birthdate',
+            'Contact', "LastName = 'Doe'")
         self.assertEqual(res['size'], 2)
-        res = svc.query('Id, LastName, FirstName, Phone, Email, Birthdate',
-                'Contact', "LastName = 'Doe' and FirstName = 'Jane'")
+        res = svc.query(
+            'Id, LastName, FirstName, Phone, Email, Birthdate',
+            'Contact', "LastName = 'Doe' and FirstName = 'Jane'")
         self.assertEqual(res['size'], 1)
         self.assertEqual(res['records'][0]['Id'], janeid)
         self.tearDown()
+
 
 def test_suite():
     return unittest.TestSuite((
