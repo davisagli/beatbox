@@ -109,6 +109,25 @@ class TestBeatbox(unittest.TestCase):
         res = svc.search(sosl)
         self.assertEqual(len(res[partnerns.searchRecords]), 1)
 
+    def testConvertLead(self):
+        res = svc.create({
+            'type': 'Lead',
+            'Company': 'Individual',
+            'LastName': 'Doe',
+            'FirstName': 'John',
+            })
+        leadId = str(res.id)
+        self._todelete.append(leadId)
+        leadConverts = [{
+            'leadId': leadId,
+            'convertedStatus': 'Closed - Converted',
+            'doNotCreateOpportunity': True,
+        }]
+        res = svc.convertLead(leadConverts)
+        self.assertEqual(str(res.leadId), leadId)
+        contactId = str(res.contactId)
+        self._todelete.append(contactId)
+
 
 def test_suite():
     return unittest.TestSuite((

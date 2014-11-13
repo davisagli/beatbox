@@ -23,7 +23,6 @@ Beatbox supports versions 16.0 through 32.0 of the Salesforce Partner Web
 Services API. However, the following API calls have not been implemented at
 this time:
 
- * convertLead
  * emptyRecycleBin
  * executeListView
  * invalidateSessions
@@ -63,6 +62,15 @@ Add a new Lead:
 Get the ID of the newly created Lead:
   >>> res[0]['id']
   '00Q7000000RVyiHEAT'
+
+Convert a Lead:
+  >>> res = svc.convertLead({
+  ...     'leadId': '00Q7000000RVyiHEAT',
+  ...     'convertedStatus': 'Closed - Converted',
+  ... })
+Get the ID of the new Contact:
+  >>> str(res[0]['contactId'])
+  '0037000000TEGrsAAH'
 
 
 More Examples

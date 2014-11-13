@@ -131,6 +131,9 @@ class Client:
     def getUserInfo(self):
         return AuthenticatedRequest(self.__serverUrl, self.sessionId, "getUserInfo").post(self.__conn)
 
+    def convertLead(self, leadConverts):
+        return ConvertLeadRequest(self.__serverUrl, self.sessionId, leadConverts).post(self.__conn)
+
 
 # fixed version of XmlGenerator, handles unqualified attributes correctly
 class BeatBoxXmlGenerator(XMLGenerator):
@@ -525,3 +528,25 @@ class DescribeLayoutRequest(AuthenticatedRequest):
 
     def writeBody(self, s):
         s.writeStringElement(_partnerNs, "sObjectType", self.__sObjectType)
+
+
+class ConvertLeadRequest(AuthenticatedRequest):
+    """
+    Converts a Lead to an Account. See also:
+    http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_convertlead.htm
+    """
+    def __init__(self, serverUrl, sessionId, leadConverts):
+        AuthenticatedRequest.__init__(self, serverUrl, sessionId, "convertLead")
+        if not isinstance(leadConverts, list):
+            self.__leadConverts = [leadConverts]
+        self.__leadConverts = leadConverts
+
+    def writeBody(self, s):
+        for leadConvert in self.__leadConverts:
+            s.startElement(None, 'leadConverts')
+            for f in ('accountId', 'contactId', 'convertedStatus', 'doNotCreateOpportunity',
+                      'leadId', 'opportunityName', 'overwriteLeadSource', 'ownerId',
+                      'sendNotificationEmail'):
+                if f in leadConvert:
+                    s.writeStringElement(_partnerNs, f, leadConvert[f])
+            s.endElement()

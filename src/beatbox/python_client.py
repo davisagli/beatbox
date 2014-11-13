@@ -299,7 +299,7 @@ class Client(BaseClient):
         locator = queryLocator
         res = BaseClient.queryMore(self, locator)
         # calculate the union of the sets of record types from each record
-        types = reduce(lambda a, b: a|b, [getRecordTypes(r) for r in res[_tPartnerNS.records:]], set())
+        types = reduce(lambda a, b: a | b, [getRecordTypes(r) for r in res[_tPartnerNS.records:]], set())
         new_types = types - set(self.typeDescs.keys())
         if new_types:
             self.typeDescs.update(self.queryTypesDescriptions(new_types))

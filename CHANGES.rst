@@ -4,6 +4,9 @@ Changelog
 32.0 (unreleased)
 -----------------
 
+* Add support for the convertLead call.
+  [davisagli]
+
 * Update to use version 32.0 of the Salesforce.com partner WSDL by default.
   [davisagli]
 
