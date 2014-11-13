@@ -177,7 +177,7 @@ class Element:
             for x in self._dir:
                 if isinstance(x, Element) and x._name == n:
                     return x
-            raise KeyError
+            raise KeyError(n)
 
     def __setitem__(self, n, v):
         if isinstance(n, type(0)):  # d[1]

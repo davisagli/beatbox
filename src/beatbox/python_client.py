@@ -315,13 +315,17 @@ class Client(BaseClient):
 
         if not self.cacheTypeDescriptions:
             self.flushTypeDescriptionsCache()
+        try:
+            res = res[_tPartnerNS.searchRecords]
+        except KeyError:
+            return []
         # calculate the union of the sets of record types from each record
         if len(res):
-            types = reduce(lambda a, b: a|b, [getRecordTypes(r) for r in res[_tPartnerNS.searchRecords]], set())
+            types = reduce(lambda a, b: a | b, [getRecordTypes(r) for r in res], set())
             new_types = types - set(self.typeDescs.keys())
             if new_types:
                 self.typeDescs.update(self.queryTypesDescriptions(new_types))
-            return [self._extractRecord(r) for r in res[_tPartnerNS.searchRecords]]
+            return [self._extractRecord(r) for r in res]
         else:
             return []
 

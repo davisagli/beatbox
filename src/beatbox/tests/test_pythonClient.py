@@ -167,7 +167,7 @@ class TestUtils(unittest.TestCase):
         typedesc = svc.describeSObjects('Contact')[0]
         fieldnames = list()
         fields = typedesc.fields.values()
-        fieldnames = [f.name for f in fields]
+        fieldnames = [f.name for f in fields if f.type not in ('address',)]
         fieldnames = ', '.join(fieldnames)
         contacts = svc.retrieve(fieldnames, 'Contact', [id])
         self.assertEqual(len(contacts), 1)

@@ -1,8 +1,11 @@
 Changelog
 =========
 
-20.1 (unreleased)
+32.0 (unreleased)
 -----------------
+
+* Update to use version 32.0 of the Salesforce.com partner WSDL by default.
+  [davisagli]
 
 * Don't use _out internal method from XMLGenerator.
   [smcmahon]

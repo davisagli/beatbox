@@ -107,7 +107,7 @@ class TestBeatbox(unittest.TestCase):
         sosl = ('find {barr} in ALL FIELDS returning Contact(Id, LastName, '
                 'FirstName, Phone, Email, Birthdate)')
         res = svc.search(sosl)
-        self.assertEqual(len(res), 1)
+        self.assertEqual(len(res[partnerns.searchRecords]), 1)
 
 
 def test_suite():
