@@ -1,7 +1,7 @@
 Changelog
 =========
 
-32.0 (unreleased)
+32.0 (2014-12-01)
 -----------------
 
 * Add support for the convertLead call.
