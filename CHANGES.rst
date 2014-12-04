@@ -1,6 +1,12 @@
 Changelog
 =========
 
+32.1 (2014-12-04)
+-----------------
+
+* Fix bug in convertLead when passed a single object instead of a list.
+  [davisagli]
+
 32.0 (2014-12-01)
 -----------------
 

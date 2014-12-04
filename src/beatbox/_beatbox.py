@@ -1,6 +1,6 @@
 """beatbox: Makes the salesforce.com SOAP API easily accessible."""
 
-__version__ = '32.0'
+__version__ = '32.1'
 __author__ = "Simon Fell et al"
 __credits__ = "Mad shouts to the sforce possie"
 __copyright__ = "(C) 2006 Simon Fell. GNU GPL 2."
@@ -538,7 +538,7 @@ class ConvertLeadRequest(AuthenticatedRequest):
     def __init__(self, serverUrl, sessionId, leadConverts):
         AuthenticatedRequest.__init__(self, serverUrl, sessionId, "convertLead")
         if not isinstance(leadConverts, list):
-            self.__leadConverts = [leadConverts]
+            leadConverts = [leadConverts]
         self.__leadConverts = leadConverts
 
     def writeBody(self, s):
