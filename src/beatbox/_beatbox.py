@@ -5,15 +5,13 @@ __author__ = "Simon Fell et al"
 __credits__ = "Mad shouts to the sforce possie"
 __copyright__ = "(C) 2006 Simon Fell. GNU GPL 2."
 
-import httplib
 import logging
 import socket
-from urlparse import urlparse
-from StringIO import StringIO
 import gzip
 import datetime
-import xmltramp
-from xmltramp import islst
+from beatbox.six import BytesIO, http_client, text_type, urlparse
+from beatbox import xmltramp
+from beatbox.xmltramp import islst
 from xml.sax.saxutils import XMLGenerator
 from xml.sax.saxutils import quoteattr
 from xml.sax.xmlreader import AttributesNSImpl
@@ -38,11 +36,12 @@ forceHttp = False     # force all connections to be HTTP, for debugging
 
 logger = logging.getLogger('beatbox')
 
+long = type(0x10000000000000000)
 
 def makeConnection(scheme, host):
     if forceHttp or scheme.upper() == 'HTTP':
-        return httplib.HTTPConnection(host)
-    return httplib.HTTPSConnection(host)
+        return http_client.HTTPConnection(host)
+    return http_client.HTTPSConnection(host)
 
 
 # the main sforce client proxy class
@@ -151,21 +150,21 @@ class BeatBoxXmlGenerator(XMLGenerator):
         return self._current_context[name[0]] + ":" + name[1]
 
     def startElementNS(self, name, qname, attrs):
-        self._out.write('<' + self.makeName(name))
+        self._write(text_type('<' + self.makeName(name)))
 
         for pair in self._undeclared_ns_maps:
-            self._out.write(' xmlns:%s="%s"' % pair)
+            self._write(text_type(' xmlns:%s="%s"' % pair))
         self._undeclared_ns_maps = []
 
         for (name, value) in attrs.items():
-            self._out.write(' %s=%s' % (self.makeName(name), quoteattr(value)))
-        self._out.write('>')
+            self._write(text_type(' %s=%s' % (self.makeName(name), quoteattr(value))))
+        self._write(text_type('>'))
 
 
 # general purpose xml writer, does a bunch of useful stuff above & beyond XmlGenerator
 class XmlWriter:
     def __init__(self, doGzip):
-        self.__buf = StringIO("")
+        self.__buf = BytesIO()
         if doGzip:
             self.__gzip = gzip.GzipFile(mode='wb', fileobj=self.__buf)
             stm = self.__gzip
@@ -322,7 +321,7 @@ class SoapEnvelope:
                 conn.request("POST", path, self.makeEnvelope(), headers)
                 response = conn.getresponse()
                 rawResponse = response.read()
-            except (httplib.HTTPException, socket.error):
+            except (http_client.HTTPException, socket.error):
                 if conn is not None:
                     conn.close()
                     conn = None
@@ -332,7 +331,7 @@ class SoapEnvelope:
             raise RuntimeError('No response from Salesforce')
 
         if response.getheader('content-encoding', '') == 'gzip':
-            rawResponse = gzip.GzipFile(fileobj=StringIO(rawResponse)).read()
+            rawResponse = gzip.GzipFile(fileobj=BytesIO(rawResponse)).read()
         if close:
             conn.close()
         tramp = xmltramp.parse(rawResponse)

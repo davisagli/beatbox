@@ -1,8 +1,8 @@
-from _beatbox import _tPartnerNS, _tSObjectNS
-from _beatbox import Client as BaseClient
-from marshall import marshall
-from types import TupleType, ListType
-from xmltramp import Namespace
+from functools import reduce
+from beatbox._beatbox import _tPartnerNS, _tSObjectNS
+from beatbox._beatbox import Client as BaseClient
+from beatbox.marshall import marshall, _bool
+from beatbox.xmltramp import Namespace
 import copy
 import re
 
@@ -43,8 +43,8 @@ class QueryRecordSet(list):
         if type(n) == type(''):
             try:
                 return getattr(self, n)
-            except AttributeError, n:
-                raise KeyError
+            except AttributeError:
+                raise KeyError("Not found %r" %n)
         else:
             return list.__getitem__(self, n)
 
@@ -56,7 +56,7 @@ class SObject(object):
             setattr(self, k, v)
 
     def marshall(self, fieldname, xml):
-        if self.fields.has_key(fieldname):
+        if fieldname in self.fields:
             field = self.fields[fieldname]
         else:
             return marshall(DEFAULT_FIELD_TYPE, fieldname, xml)
@@ -132,7 +132,7 @@ class Client(BaseClient):
 
     def describeSObjects(self, sObjectTypes):
         res = BaseClient.describeSObjects(self, sObjectTypes)
-        if type(res) not in (TupleType, ListType):
+        if type(res) not in (tuple, list):
             res = [res]
         data = list()
         for r in res:
@@ -185,7 +185,7 @@ class Client(BaseClient):
     def create(self, sObjects):
         preparedObjects = _prepareSObjects(sObjects)
         res = BaseClient.create(self, preparedObjects)
-        if type(res) not in (TupleType, ListType):
+        if type(res) not in (tuple, list):
             res = [res]
         data = list()
         for r in res:
@@ -204,7 +204,7 @@ class Client(BaseClient):
         resultSet = BaseClient.retrieve(self, fields, sObjectType, ids)
         type_data = self.describeSObjects(sObjectType)[0]
 
-        if type(resultSet) not in (TupleType, ListType):
+        if type(resultSet) not in (tuple, list):
             if isnil(resultSet):
                 resultSet = list()
             else:
@@ -221,7 +221,7 @@ class Client(BaseClient):
     def update(self, sObjects):
         preparedObjects = _prepareSObjects(sObjects)
         res = BaseClient.update(self, preparedObjects)
-        if type(res) not in (TupleType, ListType):
+        if type(res) not in (tuple, list):
             res = [res]
         data = list()
         for r in res:
@@ -331,7 +331,7 @@ class Client(BaseClient):
 
     def delete(self, ids):
         res = BaseClient.delete(self, ids)
-        if type(res) not in (TupleType, ListType):
+        if type(res) not in (tuple, list):
             res = [res]
         data = list()
         for r in res:
@@ -349,7 +349,7 @@ class Client(BaseClient):
     def upsert(self, externalIdName, sObjects):
         preparedObjects = _prepareSObjects(sObjects)
         res = BaseClient.upsert(self, externalIdName, preparedObjects)
-        if type(res) not in (TupleType, ListType):
+        if type(res) not in (tuple, list):
             res = [res]
         data = list()
         for r in res:
@@ -368,7 +368,7 @@ class Client(BaseClient):
     def getDeleted(self, sObjectType, start, end):
         res = BaseClient.getDeleted(self, sObjectType, start, end)
         res = res[_tPartnerNS.deletedRecords:]
-        if type(res) not in (TupleType, ListType):
+        if type(res) not in (tuple, list):
             res = [res]
         data = list()
         for r in res:
@@ -383,7 +383,7 @@ class Client(BaseClient):
     def getUpdated(self, sObjectType, start, end):
         res = BaseClient.getUpdated(self, sObjectType, start, end)
         res = res[_tPartnerNS.ids:]
-        if type(res) not in (TupleType, ListType):
+        if type(res) not in (tuple, list):
             res = [res]
         return [str(r) for r in res]
 
@@ -434,7 +434,8 @@ def _prepareSObjects(sObjects):
             if v is None:
                 fieldsToNull.append(k)
                 field_dict[k] = []
-            if hasattr(v, '__iter__'):
+            # type "str" has the attribute "__iter__" in Python 3
+            if hasattr(v, '__iter__') and not isinstance(v, str):
                 if len(v) == 0:
                     fieldsToNull.append(k)
                 else:
@@ -450,10 +451,6 @@ def _prepareSObjects(sObjects):
         for listitems in sObjectsCopy:
             _doPrep(listitems)
     return sObjectsCopy
-
-
-def _bool(val):
-    return str(val) == 'true'
 
 
 def _extractFieldInfo(fdata):

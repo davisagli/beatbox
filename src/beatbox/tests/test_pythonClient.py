@@ -1,6 +1,6 @@
 from beatbox import SoapFaultError
 from beatbox.python_client import _prepareSObjects
-from types import DictType, StringTypes, IntType, ListType, TupleType
+from beatbox.six import text_type
 import beatbox
 import datetime
 import sfconfig
@@ -28,10 +28,10 @@ class TestUtils(unittest.TestCase):
     def testDescribeGlobal(self):
         svc = self.svc
         res = svc.describeGlobal()
-        self.assertEqual(type(res), DictType)
-        self.failUnless(type(res['encoding']) in StringTypes)
-        self.assertEqual(type(res['maxBatchSize']), IntType)
-        self.assertEqual(type(res['types']), ListType)
+        self.assertEqual(type(res), dict)
+        self.failUnless(type(res['encoding']) in (str, text_type))
+        self.assertEqual(type(res['maxBatchSize']), int)
+        self.assertEqual(type(res['types']), list)
         self.failUnless(len(res['sobjects']) > 0)
         # BBB for API < 17.0
         self.failUnless(len(res['types']) > 0)
@@ -41,7 +41,7 @@ class TestUtils(unittest.TestCase):
         globalres = svc.describeGlobal()
         types = globalres['types'][:100]
         res = svc.describeSObjects(types[0])
-        self.assertEqual(type(res), ListType)
+        self.assertEqual(type(res), list)
         self.assertEqual(len(res), 1)
         res = svc.describeSObjects(types)
         self.assertEqual(len(types), len(res))
@@ -57,7 +57,7 @@ class TestUtils(unittest.TestCase):
             Birthdate=datetime.date(1970, 1, 4)
             )
         res = svc.create([data])
-        self.failUnless(type(res) in (ListType, TupleType))
+        self.failUnless(type(res) in (list, tuple))
         self.failUnless(len(res) == 1)
         self.failUnless(res[0]['success'])
         id = res[0]['id']
@@ -83,7 +83,7 @@ class TestUtils(unittest.TestCase):
             Favorite_Integer__c=-25
             )
         res = svc.create([data])
-        self.failUnless(type(res) in (ListType, TupleType))
+        self.failUnless(type(res) in (list, tuple))
         self.failUnless(len(res) == 1)
         self.failUnless(res[0]['success'])
         id = res[0]['id']
@@ -104,7 +104,7 @@ class TestUtils(unittest.TestCase):
             Favorite_Float__c=-1.999888777
             )
         res = svc.create([data])
-        self.failUnless(type(res) in (ListType, TupleType))
+        self.failUnless(type(res) in (list, tuple))
         self.failUnless(len(res) == 1)
         self.failUnless(res[0]['success'])
         id = res[0]['id']
@@ -127,7 +127,7 @@ class TestUtils(unittest.TestCase):
             Favorite_Fruit__c=["Apple", "Orange", "Pear"]
             )
         res = svc.create([data])
-        self.failUnless(type(res) in (ListType, TupleType))
+        self.failUnless(type(res) in (list, tuple))
         self.failUnless(len(res) == 1)
         self.failUnless(res[0]['success'])
         id = res[0]['id']
@@ -840,7 +840,7 @@ class TestUtils(unittest.TestCase):
             Birthdate=datetime.date(1970, 1, 4)
             )
         res = svc.upsert('Email', [data])
-        self.failUnless(type(res) in (ListType, TupleType))
+        self.failUnless(type(res) in (list, tuple))
         self.failUnless(len(res) == 1)
         self.failUnless(res[0]['success'])
         id = res[0]['id']
@@ -872,7 +872,7 @@ class TestUtils(unittest.TestCase):
             Description="This is a\nmultiline description.",
             )
         res = self.svc.create([data])
-        self.failUnless(type(res) in (ListType, TupleType))
+        self.failUnless(type(res) in (list, tuple))
         self.failUnless(len(res) == 1)
         self.failUnless(res[0]['success'])
         id = res[0]['id']

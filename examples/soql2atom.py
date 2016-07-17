@@ -64,7 +64,7 @@ def soql2atom(loginResult, soql, title):
     ent_ns = "urn:sobject.enterprise.soap.sforce.com"
 
     print "content-type: application/atom+xml"
-    doGzip = os.environ.has_key("HTTP_ACCEPT_ENCODING") and "gzip" in string.lower(os.environ["HTTP_ACCEPT_ENCODING"]).split(',')
+    doGzip = "HTTP_ACCEPT_ENCODING" in os.environ and "gzip" in string.lower(os.environ["HTTP_ACCEPT_ENCODING"]).split(',')
     if doGzip:
         print "content-encoding: gzip"
     print ""
@@ -127,17 +127,17 @@ def authenticationRequired(message="Unauthorized"):
     print message
 
 
-if not os.environ.has_key('X_HTTP_AUTHORIZATION') or os.environ['X_HTTP_AUTHORIZATION'] == '':
+if 'X_HTTP_AUTHORIZATION' not in os.environ or os.environ['X_HTTP_AUTHORIZATION'] == '':
     authenticationRequired()
 else:
     auth = os.environ['X_HTTP_AUTHORIZATION']
     (username, password) = base64.decodestring(auth.split(" ")[1]).split(':')
     form = cgi.FieldStorage()
-    if not form.has_key('soql'):
+    if 'soql' not in form:
         raise Exception("Must provide the SOQL query to run via the soql queryString parameter")
     soql = form.getvalue("soql")
     title = "SOQL2ATOM : " + soql
-    if form.has_key("title"):
+    if "title" in form:
         title = form.getvalue("title")
     try:
         lr = svc.login(username, password)
