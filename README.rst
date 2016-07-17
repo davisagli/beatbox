@@ -133,6 +133,7 @@ Create a sfconfig file in your python path with the following format::
 
     USERNAME='your salesforce username'
     PASSWORD='your salesforce passwordTOKEN'
+    IS_SANDBOX=False  # or True (force.com Sandbox)
 
 where TOKEN is your Salesforce API login token.
 

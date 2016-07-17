@@ -28,7 +28,8 @@ class TestUtils(unittest.TestCase):
     def setUp(self):
         from beatbox._beatbox import DEFAULT_SERVER_URL
         self.svc = svc = beatbox.PythonClient(serverUrl=DEFAULT_SERVER_URL)
-        svc.login(sfconfig.USERNAME, sfconfig.PASSWORD)
+        is_sandbox = getattr(sfconfig, 'IS_SANDBOX', False)
+        svc.login(sfconfig.USERNAME, sfconfig.PASSWORD, is_sandbox)
         self._todelete = list()
 
     def tearDown(self):

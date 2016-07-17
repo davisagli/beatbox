@@ -58,7 +58,9 @@ class Client:
 
     # login, the serverUrl and sessionId are automatically handled,
     # returns the loginResult structure
-    def login(self, username, password):
+    def login(self, username, password, is_sandbox=False):
+        if is_sandbox:
+            self.serverUrl = self.serverUrl.replace('login.', 'test.')
         lr = LoginRequest(self.serverUrl, username, password).post()
         self.useSession(str(lr[_tPartnerNS.sessionId]), str(lr[_tPartnerNS.serverUrl]))
         return lr

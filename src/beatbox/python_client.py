@@ -72,8 +72,8 @@ class Client(BaseClient):
         self.cacheTypeDescriptions = cacheTypeDescriptions
         self.typeDescs = {}
 
-    def login(self, username, passwd):
-        res = BaseClient.login(self, username, passwd)
+    def login(self, username, passwd, is_sandbox=False):
+        res = BaseClient.login(self, username, passwd, is_sandbox)
         data = dict()
         data['passwordExpired'] = _bool(res[_tPartnerNS.passwordExpired])
         data['serverUrl'] = str(res[_tPartnerNS.serverUrl])
