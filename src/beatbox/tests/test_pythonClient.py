@@ -29,12 +29,12 @@ class TestUtils(unittest.TestCase):
         svc = self.svc
         res = svc.describeGlobal()
         self.assertEqual(type(res), dict)
-        self.failUnless(type(res['encoding']) in (str, text_type))
+        self.assertTrue(type(res['encoding']) in (str, text_type))
         self.assertEqual(type(res['maxBatchSize']), int)
         self.assertEqual(type(res['types']), list)
-        self.failUnless(len(res['sobjects']) > 0)
+        self.assertTrue(len(res['sobjects']) > 0)
         # BBB for API < 17.0
-        self.failUnless(len(res['types']) > 0)
+        self.assertTrue(len(res['types']) > 0)
 
     def testDescribeSObjects(self):
         svc = self.svc
@@ -57,9 +57,9 @@ class TestUtils(unittest.TestCase):
             Birthdate=datetime.date(1970, 1, 4)
             )
         res = svc.create([data])
-        self.failUnless(type(res) in (list, tuple))
-        self.failUnless(len(res) == 1)
-        self.failUnless(res[0]['success'])
+        self.assertTrue(type(res) in (list, tuple))
+        self.assertTrue(len(res) == 1)
+        self.assertTrue(res[0]['success'])
         id = res[0]['id']
         self._todelete.append(id)
         contacts = svc.retrieve(
@@ -83,9 +83,9 @@ class TestUtils(unittest.TestCase):
             Favorite_Integer__c=-25
             )
         res = svc.create([data])
-        self.failUnless(type(res) in (list, tuple))
-        self.failUnless(len(res) == 1)
-        self.failUnless(res[0]['success'])
+        self.assertTrue(type(res) in (list, tuple))
+        self.assertTrue(len(res) == 1)
+        self.assertTrue(res[0]['success'])
         id = res[0]['id']
         self._todelete.append(id)
         contacts = svc.retrieve('LastName, FirstName, Favorite_Integer__c', 'Contact', [id])
@@ -104,9 +104,9 @@ class TestUtils(unittest.TestCase):
             Favorite_Float__c=-1.999888777
             )
         res = svc.create([data])
-        self.failUnless(type(res) in (list, tuple))
-        self.failUnless(len(res) == 1)
-        self.failUnless(res[0]['success'])
+        self.assertTrue(type(res) in (list, tuple))
+        self.assertTrue(len(res) == 1)
+        self.assertTrue(res[0]['success'])
         id = res[0]['id']
         self._todelete.append(id)
         contacts = svc.retrieve('LastName, FirstName, Favorite_Float__c', 'Contact', [id])
@@ -127,9 +127,9 @@ class TestUtils(unittest.TestCase):
             Favorite_Fruit__c=["Apple", "Orange", "Pear"]
             )
         res = svc.create([data])
-        self.failUnless(type(res) in (list, tuple))
-        self.failUnless(len(res) == 1)
-        self.failUnless(res[0]['success'])
+        self.assertTrue(type(res) in (list, tuple))
+        self.assertTrue(len(res) == 1)
+        self.assertTrue(res[0]['success'])
         id = res[0]['id']
         self._todelete.append(id)
         contacts = svc.retrieve('LastName, FirstName, Phone, Email, Birthdate, \
@@ -207,7 +207,7 @@ class TestUtils(unittest.TestCase):
         res = svc.create([data])
         id = res[0]['id']
         res = svc.delete([id])
-        self.failUnless(res[0]['success'])
+        self.assertTrue(res[0]['success'])
         contacts = svc.retrieve('LastName', 'Contact', [id])
         self.assertEqual(len(contacts), 0)
 
@@ -314,8 +314,8 @@ class TestUtils(unittest.TestCase):
             Id=id,
             Birthdate=newdate)
         res = svc.update(data)
-        self.failUnless(not res[0]['success'])
-        self.failUnless(len(res[0]['errors']) > 0)
+        self.assertTrue(not res[0]['success'])
+        self.assertTrue(len(res[0]['errors']) > 0)
 
     def testQuery(self):
         svc = self.svc
@@ -378,7 +378,7 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(res['size'], 2)
         # conditional expression as *empty* positional arg
         res = svc.query('LastName', 'Contact', '')
-        self.failUnless(res['size'] > 0)
+        self.assertTrue(res['size'] > 0)
         # conditional expression as kwarg
         res = svc.query(
             'Id, LastName, FirstName, Phone, Email, Birthdate',
@@ -645,7 +645,7 @@ class TestUtils(unittest.TestCase):
 
         res = svc.query("SELECT MAX(CreatedDate) FROM Contact GROUP BY LastName")
         # the aggregate result is in the 'expr0' attribute of the result
-        self.failUnless(hasattr(res[0], 'expr0'))
+        self.assertTrue(hasattr(res[0], 'expr0'))
         # (unfortunately no field type info is returned as part of the
         # AggregateResult object, so we can't automatically marshall to the
         # correct Python type)
@@ -678,10 +678,10 @@ class TestUtils(unittest.TestCase):
         res = svc.query(
             'LastName, FirstName, Phone, Email, Birthdate',
             'Contact', "LastName = 'Doe'")
-        self.failUnless(not res['done'])
+        self.assertTrue(not res['done'])
         self.assertEqual(len(res['records']), 200)
         res = svc.queryMore(res['queryLocator'])
-        self.failUnless(res['done'])
+        self.assertTrue(res['done'])
         self.assertEqual(len(res['records']), 50)
 
     def testSearch(self):
@@ -709,9 +709,9 @@ class TestUtils(unittest.TestCase):
         id = res[0]['id']
         svc.delete(id)
         res = svc.getDeleted('Contact', startdate, enddate)
-        self.failUnless(len(res) != 0)
+        self.assertTrue(len(res) != 0)
         ids = [r['id'] for r in res]
-        self.failUnless(id in ids)
+        self.assertTrue(id in ids)
 
     def testGetUpdated(self):
         svc = self.svc
@@ -734,37 +734,37 @@ class TestUtils(unittest.TestCase):
             FirstName='Jane')
         svc.update(data)
         res = svc.getUpdated('Contact', startdate, enddate)
-        self.failUnless(id in res)
+        self.assertTrue(id in res)
 
     def testGetUserInfo(self):
         svc = self.svc
         userinfo = svc.getUserInfo()
-        self.failUnless('accessibilityMode' in userinfo)
-        self.failUnless('currencySymbol' in userinfo)
-        self.failUnless('organizationId' in userinfo)
-        self.failUnless('organizationMultiCurrency' in userinfo)
-        self.failUnless('organizationName' in userinfo)
-        self.failUnless('userDefaultCurrencyIsoCode' in userinfo)
-        self.failUnless('userEmail' in userinfo)
-        self.failUnless('userFullName' in userinfo)
-        self.failUnless('userId' in userinfo)
-        self.failUnless('userLanguage' in userinfo)
-        self.failUnless('userLocale' in userinfo)
-        self.failUnless('userTimeZone' in userinfo)
-        self.failUnless('userUiSkin' in userinfo)
+        self.assertTrue('accessibilityMode' in userinfo)
+        self.assertTrue('currencySymbol' in userinfo)
+        self.assertTrue('organizationId' in userinfo)
+        self.assertTrue('organizationMultiCurrency' in userinfo)
+        self.assertTrue('organizationName' in userinfo)
+        self.assertTrue('userDefaultCurrencyIsoCode' in userinfo)
+        self.assertTrue('userEmail' in userinfo)
+        self.assertTrue('userFullName' in userinfo)
+        self.assertTrue('userId' in userinfo)
+        self.assertTrue('userLanguage' in userinfo)
+        self.assertTrue('userLocale' in userinfo)
+        self.assertTrue('userTimeZone' in userinfo)
+        self.assertTrue('userUiSkin' in userinfo)
 
     def testDescribeTabs(self):
         tabinfo = self.svc.describeTabs()
         for info in tabinfo:
-            self.failUnless('label' in info)
-            self.failUnless('logoUrl' in info)
-            self.failUnless('selected' in info)
-            self.failUnless('tabs' in info)
+            self.assertTrue('label' in info)
+            self.assertTrue('logoUrl' in info)
+            self.assertTrue('selected' in info)
+            self.assertTrue('tabs' in info)
             for tab in info['tabs']:
-                self.failUnless('custom' in tab)
-                self.failUnless('label' in tab)
-                self.failUnless('sObjectName' in tab)
-                self.failUnless('url' in tab)
+                self.assertTrue('custom' in tab)
+                self.assertTrue('label' in tab)
+                self.assertTrue('sObjectName' in tab)
+                self.assertTrue('url' in tab)
 
     def testDescribeLayout(self):
         svc = self.svc
@@ -793,7 +793,7 @@ class TestUtils(unittest.TestCase):
             Favorite_Fruit__c=newList)
         svc.update(data)
         contacts = svc.retrieve('LastName, Favorite_Fruit__c', 'Contact', [id])
-        self.failUnless(isinstance(contacts[0]['Favorite_Fruit__c'], list))
+        self.assertTrue(isinstance(contacts[0]['Favorite_Fruit__c'], list))
         self.assertEqual(len(contacts[0]['Favorite_Fruit__c']), 0)
 
     def testAddToEmptyMultiPicklist(self):
@@ -811,7 +811,7 @@ class TestUtils(unittest.TestCase):
         id = res[0]['id']
         self._todelete.append(id)
         contacts = svc.retrieve('LastName, Favorite_Fruit__c', 'Contact', [id])
-        self.failUnless(isinstance(contacts[0]['Favorite_Fruit__c'], list))
+        self.assertTrue(isinstance(contacts[0]['Favorite_Fruit__c'], list))
         self.assertEqual(len(contacts[0]['Favorite_Fruit__c']), 0)
         data = dict(
             type='Contact',
@@ -819,7 +819,7 @@ class TestUtils(unittest.TestCase):
             Favorite_Fruit__c=newList)
         svc.update(data)
         contacts = svc.retrieve('LastName, Favorite_Fruit__c', 'Contact', [id])
-        self.failUnless(isinstance(contacts[0]['Favorite_Fruit__c'], list))
+        self.assertTrue(isinstance(contacts[0]['Favorite_Fruit__c'], list))
         self.assertEqual(len(contacts[0]['Favorite_Fruit__c']), 2)
 
     def testIsNillableField(self):
@@ -840,9 +840,9 @@ class TestUtils(unittest.TestCase):
             Birthdate=datetime.date(1970, 1, 4)
             )
         res = svc.upsert('Email', [data])
-        self.failUnless(type(res) in (list, tuple))
-        self.failUnless(len(res) == 1)
-        self.failUnless(res[0]['success'])
+        self.assertTrue(type(res) in (list, tuple))
+        self.assertTrue(len(res) == 1)
+        self.assertTrue(res[0]['success'])
         id = res[0]['id']
         self._todelete.append(id)
         contacts = svc.retrieve(
@@ -872,9 +872,9 @@ class TestUtils(unittest.TestCase):
             Description="This is a\nmultiline description.",
             )
         res = self.svc.create([data])
-        self.failUnless(type(res) in (list, tuple))
-        self.failUnless(len(res) == 1)
-        self.failUnless(res[0]['success'])
+        self.assertTrue(type(res) in (list, tuple))
+        self.assertTrue(len(res) == 1)
+        self.assertTrue(res[0]['success'])
         id = res[0]['id']
         self._todelete.append(id)
         contacts = self.svc.retrieve('Description', 'Contact', [id])

@@ -66,9 +66,9 @@ class TestUtils(unittest.TestCase):
             Birthdate=datetime.date(1970, 1, 4)
             )
         res = svc.create([data])
-        self.failUnless(type(res) in (list, tuple))
-        self.failUnless(len(res) == 1)
-        self.failUnless(res[0]['success'])
+        self.assertTrue(type(res) in (list, tuple))
+        self.assertTrue(len(res) == 1)
+        self.assertTrue(res[0]['success'])
         id = res[0]['id']
         self._todelete.append(id)
         contacts = svc.retrieve(
