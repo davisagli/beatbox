@@ -40,11 +40,11 @@ class QueryRecordSet(list):
         return self
 
     def __getitem__(self, n):
-        if type(n) == type(''):
+        if isinstance(n, str):
             try:
                 return getattr(self, n)
             except AttributeError:
-                raise KeyError("Not found %r" %n)
+                raise KeyError("Not found %r" % n)
         else:
             return list.__getitem__(self, n)
 
@@ -282,7 +282,7 @@ class Client(BaseClient):
 
         res = BaseClient.query(self, queryString)
         # calculate the union of the sets of record types from each record
-        types = reduce(lambda a, b: a|b, [getRecordTypes(r) for r in res[_tPartnerNS.records:]], set())
+        types = reduce(lambda a, b: a | b, [getRecordTypes(r) for r in res[_tPartnerNS.records:]], set())
         if not self.cacheTypeDescriptions:
             self.flushTypeDescriptionsCache()
         new_types = types - set(self.typeDescs.keys())
