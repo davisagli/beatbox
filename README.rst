@@ -128,6 +128,9 @@ First, we need to add some custom fields to the Contacts object in your Salesfor
  * Leave default of 3 lines and field name should default to "Favorite_Fruit"
  * Add a Number labeled "Favorite Integer", with 18 places, 0 decimal places
  * Add a Number labeled "Favorite Float", with 13 places, 5 decimal places
+ * Browse ... Account --> Fields --> Account Site, Account Number.
+   Click "Set Field-Level Security". Select the user profiles for which these
+   fields shoud be visible. (Even the Administrator can not see them by default.)
 
 Create a sfconfig file in your python path with the following format::
 
