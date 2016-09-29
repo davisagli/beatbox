@@ -686,7 +686,7 @@ class TestUtils(unittest.TestCase):
 
     def testSearch(self):
         res = self.svc.search("FIND {barr} in ALL FIELDS RETURNING Contact(Id, Birthdate)")
-        self.assertEqual(len(res), 1)
+        self.assertEqual(len(res), 1, "Not found 'barr' in any field in Contact")
         self.assertEqual(res[0].type, 'Contact')
         self.assertEqual(type(res[0].Birthdate), datetime.date)
 

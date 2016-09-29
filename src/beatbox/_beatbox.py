@@ -1,6 +1,6 @@
 """beatbox: Makes the salesforce.com SOAP API easily accessible."""
 
-__version__ = '32.1'
+__version__ = '37.0'
 __author__ = "Simon Fell et al"
 __credits__ = "Mad shouts to the sforce possie"
 __copyright__ = "(C) 2006 Simon Fell. GNU GPL 2."
@@ -22,7 +22,7 @@ _sobjectNs = "urn:sobject.partner.soap.sforce.com"
 _envNs = "http://schemas.xmlsoap.org/soap/envelope/"
 _noAttrs = AttributesNSImpl({}, {})
 
-DEFAULT_SERVER_URL = 'https://login.salesforce.com/services/Soap/u/32.0'
+DEFAULT_SERVER_URL = 'https://login.salesforce.com/services/Soap/u/37.0'
 
 # global constants for xmltramp namespaces, used to access response data
 _tPartnerNS = xmltramp.Namespace(_partnerNs)
@@ -58,7 +58,7 @@ class Client:
                 self.__conn.close()
             except AttributeError as exc:
                 # run too late in Python 3 if the program terminates
-                if not "no attribute '_real_close'" in exc.args[0]:
+                if "no attribute '_real_close'" not in exc.args[0]:
                     raise
 
     # login, the serverUrl and sessionId are automatically handled,
