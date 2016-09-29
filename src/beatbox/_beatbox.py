@@ -38,6 +38,7 @@ logger = logging.getLogger('beatbox')
 
 long = type(0x10000000000000000)
 
+
 def makeConnection(scheme, host):
     if forceHttp or scheme.upper() == 'HTTP':
         return http_client.HTTPConnection(host)
@@ -53,7 +54,12 @@ class Client:
 
     def __del__(self):
         if callable(getattr(self.__conn, 'close', None)):
-            self.__conn.close()
+            try:
+                self.__conn.close()
+            except AttributeError as exc:
+                # run too late in Python 3 if the program terminates
+                if not "no attribute '_real_close'" in exc.args[0]:
+                    raise
 
     # login, the serverUrl and sessionId are automatically handled,
     # returns the loginResult structure
