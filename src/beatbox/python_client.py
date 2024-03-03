@@ -10,7 +10,7 @@ _tSchemaInstanceNS = Namespace('http://www.w3.org/2001/XMLSchema-instance')
 _tSchemaNS = Namespace('http://www.w3.org/2001/XMLSchema')
 
 DEFAULT_FIELD_TYPE = "string"
-querytyperegx = re.compile('(?:from|FROM) (\S+)')
+querytyperegx = re.compile(r'(?:from|FROM) (\S+)')
 
 
 class QueryRecord(dict):

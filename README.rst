@@ -19,7 +19,7 @@ This module contains 2 versions of the Salesforce.com client:
 Compatibility
 =============
 
-Beatbox supports versions 20.0 through 38.0 of the Salesforce Partner Web
+Beatbox supports versions 20.0 through 60.0 of the Salesforce Partner Web
 Services API. However, the following API calls have not been implemented at
 this time: (but no new method after 32.0)
 

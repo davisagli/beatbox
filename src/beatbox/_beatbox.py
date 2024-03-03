@@ -22,7 +22,7 @@ _sobjectNs = "urn:sobject.partner.soap.sforce.com"
 _envNs = "http://schemas.xmlsoap.org/soap/envelope/"
 _noAttrs = AttributesNSImpl({}, {})
 
-DEFAULT_SERVER_URL = 'https://login.salesforce.com/services/Soap/u/37.0'
+DEFAULT_SERVER_URL = 'https://login.salesforce.com/services/Soap/u/60.0'
 
 # global constants for xmltramp namespaces, used to access response data
 _tPartnerNS = xmltramp.Namespace(_partnerNs)
