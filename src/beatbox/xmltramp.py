@@ -1,12 +1,10 @@
 """xmltramp: Make XML documents easily accessible."""
+from beatbox.six import BytesIO, StringIO, text_type, python_2_unicode_compatible
 
 __version__ = "2.16"
 __author__ = "Aaron Swartz"
 __credits__ = "Many thanks to pjz, bitsko, and DanC."
 __copyright__ = "(C) 2003 Aaron Swartz. GNU GPL 2."
-
-if not hasattr(__builtins__, 'True'):
-    True, False = 1, 0
 
 
 def isstr(f):
@@ -31,6 +29,7 @@ def quote(x, elt=True):
     return x
 
 
+@python_2_unicode_compatible
 class Element:
     def __init__(self, name, attrs=None, children=None, prefixes=None):
         if islst(name) and name[0] is None:
@@ -123,14 +122,11 @@ class Element:
 
         return out
 
-    def __unicode__(self):
-        text = ''
-        for x in self._dir:
-            text += unicode(x)
-        return ' '.join(text.split())
-
     def __str__(self):
-        return self.__unicode__().encode('utf-8')
+        text = u''
+        for x in self._dir:
+            text += text_type(x)
+        return ' '.join(text.split())
 
     def __getattr__(self, n):
         if n[0] == '_':
@@ -159,7 +155,7 @@ class Element:
             return self._dir[n]
         elif isinstance(n, slice(0).__class__):
             # numerical slices
-            if isinstance(n.start, type(0)):
+            if isinstance(n.start, type(0)) or n == slice(None):
                 return self._dir[n.start:n.stop]
 
             # d['foo':] == all <foo>s
@@ -221,7 +217,7 @@ class Element:
             if self._dNS and not islst(n):
                 n = (self._dNS, n)
 
-            for i in range(len(self)):
+            for i in reversed(range(len(self))):
                 if self[i]._name == n:
                     del self[i]
         else:
@@ -238,7 +234,7 @@ class Element:
         if len(_pos) > 1:
             for i in range(0, len(_pos), 2):
                 self._attrs[_pos[i]] = _pos[i+1]
-        if len(_pos) == 1 is not None:
+        if len(_pos) == 1:
             return self._attrs[_pos[0]]
         if len(_pos) == 0:
             return self._attrs
@@ -268,7 +264,7 @@ class Seeder(EntityResolver, DTDHandler, ContentHandler, ErrorHandler):
         ContentHandler.__init__(self)
 
     def startPrefixMapping(self, prefix, uri):
-        if not self.prefixes.has_key(prefix):
+        if prefix not in self.prefixes:
             self.prefixes[prefix] = []
         self.prefixes[prefix].append(uri)
 
@@ -320,8 +316,7 @@ def seed(fileobj):
 
 
 def parse(text):
-    from StringIO import StringIO
-    return seed(StringIO(text))
+    return seed(StringIO(text) if isinstance(text, text_type) else BytesIO(text))
 
 
 def load(url):
@@ -343,13 +338,13 @@ def unittest():
 
     try:
         d._doesnotexist
-        raise "ExpectedError", "but found success. Damn."
+        raise RuntimeError("Expected Error but found success. Damn.")
     except AttributeError:
         pass
     assert d.bar._name == 'bar'
     try:
         d.doesnotexist
-        raise "ExpectedError", "but found success. Damn."
+        raise RuntimeError("Expected Error but found success. Damn.")
     except AttributeError:
         pass
 
@@ -388,8 +383,24 @@ def unittest():
     </doc>""")
 
     assert repr(d) == '<doc version="2.7182818284590451">...</doc>'
-    assert d.__repr__(1) == '<doc xmlns:bbc="http://example.org/bbc" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns="http://example.org/bar" version="2.7182818284590451"><author>John Polk and John Palfrey</author><dc:creator>John Polk</dc:creator><dc:creator>John Palfrey</dc:creator><bbc:show bbc:station="4">Buffy</bbc:show></doc>'
-    assert d.__repr__(1, 1) == '<doc xmlns:bbc="http://example.org/bbc" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns="http://example.org/bar" version="2.7182818284590451">\n\t<author>John Polk and John Palfrey</author>\n\t<dc:creator>John Polk</dc:creator>\n\t<dc:creator>John Palfrey</dc:creator>\n\t<bbc:show bbc:station="4">Buffy</bbc:show>\n</doc>'
+    assert d.__repr__(1) == (
+        '<doc xmlns:bbc="http://example.org/bbc" xmlns:dc="http://purl.org/dc/elements/1.1/"'
+        ' xmlns="http://example.org/bar" version="2.7182818284590451">'
+        '<author>John Polk and John Palfrey</author>'
+        '<dc:creator>John Polk</dc:creator>'
+        '<dc:creator>John Palfrey</dc:creator>'
+        '<bbc:show bbc:station="4">Buffy</bbc:show>'
+        '</doc>'
+    )
+    assert d.__repr__(1, 1) == (
+        '<doc xmlns:bbc="http://example.org/bbc" xmlns:dc="http://purl.org/dc/elements/1.1/"'
+        ' xmlns="http://example.org/bar" version="2.7182818284590451">\n'
+        '\t<author>John Polk and John Palfrey</author>\n'
+        '\t<dc:creator>John Polk</dc:creator>\n'
+        '\t<dc:creator>John Palfrey</dc:creator>\n'
+        '\t<bbc:show bbc:station="4">Buffy</bbc:show>\n'
+        '</doc>'
+    )
 
     assert repr(parse("<doc xml:lang='en' />")) == '<doc xml:lang="en"></doc>'
 

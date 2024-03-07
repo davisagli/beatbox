@@ -2,6 +2,8 @@ import beatbox
 import datetime
 import sfconfig
 import unittest
+import warnings
+from beatbox.six import PY3
 
 partnerns = beatbox._tPartnerNS
 svc = beatbox.XMLClient()
@@ -10,7 +12,10 @@ svc = beatbox.XMLClient()
 class TestBeatbox(unittest.TestCase):
 
     def setUp(self):
-        svc.login(sfconfig.USERNAME, sfconfig.PASSWORD)
+        is_sandbox = getattr(sfconfig, 'IS_SANDBOX', False)
+        if PY3:
+            warnings.filterwarnings("ignore", message='.*ssl.SSLSocket', category=ResourceWarning, module='beatbox')  # NOQA
+        svc.login(sfconfig.USERNAME, sfconfig.PASSWORD, is_sandbox)
         self._todelete = list()
 
     def tearDown(self):

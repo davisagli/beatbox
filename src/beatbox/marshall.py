@@ -1,8 +1,7 @@
-from _beatbox import _tSObjectNS
-from types import ListType, TupleType
+from beatbox._beatbox import _tSObjectNS
 import datetime
-import python_client
 import re
+from beatbox.six import PY2, text_type
 
 
 dateregx = re.compile(r'(\d{4})-(\d{2})-(\d{2})')
@@ -22,6 +21,9 @@ doubletypes = ('double', 'currency', 'percent')
 multitypes = ('combobox', 'multipicklist')
 
 
+def _bool(val):
+    return str(val) == 'true'
+
 _marshallers = dict()
 
 
@@ -31,7 +33,7 @@ def marshall(fieldtype, fieldname, xml, ns=_tSObjectNS):
 
 
 def register(fieldtypes, func):
-    if type(fieldtypes) not in (ListType, TupleType):
+    if type(fieldtypes) not in (list, tuple):
         fieldtypes = [fieldtypes]
     for t in fieldtypes:
         _marshallers[t] = func
@@ -47,8 +49,10 @@ def textMarshaller(fieldname, xml, ns):
     node = xml[getattr(ns, fieldname)]
     text = ''
     for x in node._dir:
-        text += unicode(x)
-    return text.encode('utf-8')
+        text += text_type(x)
+    if PY2:
+        text = text.encode('utf-8')
+    return text
 register(texttypes, textMarshaller)
 
 
@@ -61,7 +65,7 @@ register(multitypes, multiMarshaller)
 
 
 def booleanMarshaller(fieldname, xml, ns):
-    return python_client._bool(xml[getattr(ns, fieldname)])
+    return _bool(xml[getattr(ns, fieldname)])
 register('boolean', booleanMarshaller)
 
 

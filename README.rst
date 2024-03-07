@@ -19,9 +19,9 @@ This module contains 2 versions of the Salesforce.com client:
 Compatibility
 =============
 
-Beatbox supports versions 16.0 through 32.0 of the Salesforce Partner Web
+Beatbox supports versions 20.0 through 60.0 of the Salesforce Partner Web
 Services API. However, the following API calls have not been implemented at
-this time:
+this time: (but no new method after 32.0)
 
  * emptyRecycleBin
  * executeListView
@@ -36,7 +36,8 @@ this time:
  * sendEmail
  * all describe* calls except describeGlobal, describeSObjects, and describeTabs
 
-Beatbox has been tested with Python 2.7.
+Beatbox has been tested with Python 2.7.9+, 3.4, 3.5. No older versions are
+possible due to the current TLS requirements of Salesforce.
 
 
 Basic Usage Examples
@@ -128,11 +129,16 @@ First, we need to add some custom fields to the Contacts object in your Salesfor
  * Leave default of 3 lines and field name should default to "Favorite_Fruit"
  * Add a Number labeled "Favorite Integer", with 18 places, 0 decimal places
  * Add a Number labeled "Favorite Float", with 13 places, 5 decimal places
+ * Browse ... Account --> Fields --> Account Site, Account Number.
+   Click "Set Field-Level Security". Select the user profiles for which these
+   fields should be visible. (Even the Administrator can not see them by default.)
+ * Create a Contact with a nickname "barr" and some Birthdate.
 
 Create a sfconfig file in your python path with the following format::
 
     USERNAME='your salesforce username'
     PASSWORD='your salesforce passwordTOKEN'
+    IS_SANDBOX=False  # or True (force.com Sandbox)
 
 where TOKEN is your Salesforce API login token.
 

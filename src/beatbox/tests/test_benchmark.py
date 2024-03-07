@@ -1,10 +1,10 @@
 from time import time
-from types import ListType, TupleType
 import beatbox
 import datetime
 import gc
 import sfconfig
 import unittest
+from beatbox.six import xrange
 
 BENCHMARK_REPS = 1
 
@@ -19,7 +19,7 @@ def benchmark(func):
         t1 = time()
         gc.enable()
         elapsed = t1 - t0
-        print "\n%s: %s\n" % (func.__name__, elapsed)
+        print("\n%s: %s\n" % (func.__name__, elapsed))
     return benchmarked_func
 
 
@@ -28,7 +28,8 @@ class TestUtils(unittest.TestCase):
     def setUp(self):
         from beatbox._beatbox import DEFAULT_SERVER_URL
         self.svc = svc = beatbox.PythonClient(serverUrl=DEFAULT_SERVER_URL)
-        svc.login(sfconfig.USERNAME, sfconfig.PASSWORD)
+        is_sandbox = getattr(sfconfig, 'IS_SANDBOX', False)
+        svc.login(sfconfig.USERNAME, sfconfig.PASSWORD, is_sandbox)
         self._todelete = list()
 
     def tearDown(self):
@@ -48,7 +49,7 @@ class TestUtils(unittest.TestCase):
         globalres = svc.describeGlobal()
         types = globalres['types']
         res = svc.describeSObjects(types[0])
-        self.assertEqual(type(res), ListType)
+        self.assertEqual(type(res), list)
         self.assertEqual(len(res), 1)
         res = svc.describeSObjects(types[:100])
         self.assertEqual(len(types[:100]), len(res))
@@ -65,9 +66,9 @@ class TestUtils(unittest.TestCase):
             Birthdate=datetime.date(1970, 1, 4)
             )
         res = svc.create([data])
-        self.failUnless(type(res) in (ListType, TupleType))
-        self.failUnless(len(res) == 1)
-        self.failUnless(res[0]['success'])
+        self.assertTrue(type(res) in (list, tuple))
+        self.assertTrue(len(res) == 1)
+        self.assertTrue(res[0]['success'])
         id = res[0]['id']
         self._todelete.append(id)
         contacts = svc.retrieve(

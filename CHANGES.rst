@@ -1,6 +1,24 @@
 Changelog
 =========
 
+37.0 (Unpublished)
+------------------
+
+* Support for Python 3.4 and 3.5.
+  [hynekcer]
+
+* Update to use version 37.0 of the Salesforce.com partner WSDL by default.
+  [hynekcer]
+
+* Automatic tests for all Python versions by 'tox'.
+  [hynekcer]
+
+* Support for easy sandbox login.
+  [hynekcer]
+
+* Fixed deprecation warning due to deprecated failUnless test method.
+  [hynekcer]
+
 32.1 (2014-12-04)
 -----------------
 
